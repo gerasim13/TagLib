@@ -7,11 +7,16 @@
 //
 
 #import "TLMetaData.h"
+#import "TLID3MetaData.h"
+#import "TLMP4MetaData.h"
 #import <objc/runtime.h>
 
 #pragma mark Artwork
 
 NSString *const TLMetaDataErrorDomain = @"TLMetaDataErrorDomain";
+
+
+#if !(TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
 
 NSBitmapImageFileType kTLMetaDataArtworkFormat = NSPNGFileType;
 
@@ -53,6 +58,8 @@ NSData *TLMetaDataGetDataForImage(NSImage *image, NSString **mimeType)
 	if(mimeType) *mimeType = __PKMetaDataGetMimeTypeForImageType(kTLMetaDataArtworkFormat);
 	return [imageRep representationUsingType:kTLMetaDataArtworkFormat properties:nil];
 }
+
+#endif
 
 #pragma mark -
 #pragma mark Class Cluster
@@ -141,7 +148,6 @@ static NSMutableSet *PKMetaDataGetClasses()
 	TLMetaData *newSelf = [[metaDataClass alloc] initWithURL:url openReadOnly:openReadOnly error:error];
 	if(newSelf)
 	{
-		[self release];
 		self = newSelf;
 		
 		return self;
@@ -259,11 +265,11 @@ static NSMutableSet *PKMetaDataGetClasses()
 	return nil;
 }
 
-- (void)setArtwork:(NSImage *)artwork
+- (void)setArtwork:(ImageType *)artwork
 {
 }
 
-- (NSImage *)artwork
+- (ImageType*)artwork
 {
 	return nil;
 }

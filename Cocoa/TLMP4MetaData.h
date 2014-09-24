@@ -6,20 +6,17 @@
 //  Copyright 2008 Roundabout Software. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <TagLib/TLMetaData.h>
-
-#ifdef __cplusplus
-#	import <TagLib/mp4file.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    #import <Foundation/Foundation.h>
+    #import "TLMetaData.h"
+#else
+    #import <Cocoa/Cocoa.h>
+    #import <TagLib/TLMetaData.h>
 #endif
 
 @interface TLMP4MetaData : TLMetaData
 {
-#ifdef __cplusplus
-	TagLib::MP4::File *_tagFile;
-#else
-	void *_file;
-#endif
+    void *_file;
 }
 
 @end

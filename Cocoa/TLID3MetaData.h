@@ -6,23 +6,17 @@
 //  Copyright 2008 Roundabout Software. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <TagLib/TLMetaData.h>
-
-/*
-	Truly this is unspeakably evil:
- */
-#ifdef __cplusplus
-#	import <TagLib/mpegfile.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    #import <Foundation/Foundation.h>
+    #import "TLMetaData.h"
+#else
+    #import <Cocoa/Cocoa.h>
+    #import <TagLib/TLMetaData.h>
 #endif
 
 @interface TLID3MetaData : TLMetaData
 {
-#ifdef __cplusplus
-	TagLib::MPEG::File *_tagFile;
-#else
-	void *_file;
-#endif
+    void *_file;
 }
 
 @end

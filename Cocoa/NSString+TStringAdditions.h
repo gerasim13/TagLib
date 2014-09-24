@@ -6,11 +6,19 @@
 //  Copyright 2009 Roundabout Software. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    #import <Foundation/Foundation.h>
+    #ifdef __cplusplus
+        #import "tstring.h"
+    #endif
+#else
+    #import <Cocoa/Cocoa.h>
+    #ifdef __cplusplus
+        #import <TagLib/tstring.h>
+    #endif
+#endif
 
 #ifdef __cplusplus
-
-#import <TagLib/tstring.h>
 
 /*!
  @category

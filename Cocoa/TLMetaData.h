@@ -6,24 +6,32 @@
 //  Copyright 2008 Roundabout Software, LLC. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    #import <UIKit/UIKit.h>
+    #define ImageType UIImage
+#else
+    #import <Cocoa/Cocoa.h>
+    #define ImageType NSImage
+#endif
 
 __BEGIN_DECLS
 
 extern NSString *const TLMetaDataErrorDomain;
 
+#if !(TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
 /*!
  @constant	kTLMetaDataArtworkFormat
  @abstract	The NSBitmapImageFileType to use when getting data for an image.
 			By default this value is NSPNGFileType.
  */
-extern NSBitmapImageFileType kTLMetaDataArtworkFormat; 
+extern NSBitmapImageFileType kTLMetaDataArtworkFormat;
+#endif
 
 /*!
  @function	TLMetaDataGetDataForImage
  @abstract	Get the data for an image in the preferred format.
  */
-extern NSData *TLMetaDataGetDataForImage(NSImage *image, NSString **mimeType);
+extern NSData *TLMetaDataGetDataForImage(ImageType *image, NSString **mimeType);
 
 #pragma mark -
 
@@ -157,7 +165,7 @@ extern NSData *TLMetaDataGetDataForImage(NSImage *image, NSString **mimeType);
  @property
  @abstract	The artwork image of the receiver
  */
-@property (copy) NSImage *artwork;
+@property (copy) ImageType *artwork;
 
 /*!
  @property

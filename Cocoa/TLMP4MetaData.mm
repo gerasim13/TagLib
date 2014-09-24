@@ -15,6 +15,13 @@
 
 using namespace TagLib;
 
+@interface TLMP4MetaData ()
+{
+    TagLib::MP4::File *_tagFile;
+}
+    
+@end
+
 @implementation TLMP4MetaData
 
 - (void)finalize
@@ -27,8 +34,6 @@ using namespace TagLib;
 - (void)dealloc
 {
 	delete _tagFile;
-	
-	[super dealloc];
 }
 
 #pragma mark -
@@ -66,8 +71,6 @@ using namespace TagLib;
 												   code:NSFileReadUnknownError 
 											   userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"Could not open the file %@ with TLMP4MetaData. Sorry!", url] 
 																					forKey:NSLocalizedDescriptionKey]];
-			
-			[self release];
 			return nil;
 		}
 		
@@ -89,10 +92,14 @@ using namespace TagLib;
 {
 	if([self canUpdateFile])
 	{
-		[[NSProcessInfo processInfo] disableSuddenTermination];
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        return _tagFile->save();
+#else
+        [[NSProcessInfo processInfo] disableSuddenTermination];
 		bool result = _tagFile->save();
 		[[NSProcessInfo processInfo] enableSuddenTermination];
 		return result;
+#endif
 	}
 	return NO;
 }
@@ -279,14 +286,14 @@ using namespace TagLib;
 	return [self _stringForTag:"\251too"];
 }
 
-- (void)setArtwork:(NSImage *)image
+- (void)setArtwork:(ImageType *)image
 {
 	@synchronized(self)
 	{
 		if(image)
 		{
 			NSData *imageData = TLMetaDataGetDataForImage(image, nil);
-			ByteVector imageBytes = ByteVector((const char *)[imageData bytes], [imageData length]);
+			ByteVector imageBytes = ByteVector((const char *)[imageData bytes], (uint)[imageData length]);
 			ByteVectorList itemList = ByteVectorList();
 			itemList.append(imageBytes);
 			
@@ -300,7 +307,7 @@ using namespace TagLib;
 	}
 }
 
-- (NSImage *)artwork
+- (ImageType *)artwork
 {
 	@synchronized(self)
 	{
@@ -309,7 +316,7 @@ using namespace TagLib;
 		{
 			ByteVector artworkBytes = items["covr"].toByteVectorList()[0];
 			NSData *artworkData = [NSData dataWithBytes:artworkBytes.data() length:artworkBytes.size()];
-			return [[[NSImage alloc] initWithData:artworkData] autorelease];
+			return [[ImageType alloc] initWithData:artworkData];
 		}
 	}
 	
@@ -343,7 +350,7 @@ using namespace TagLib;
 	@synchronized(self)
 	{
 		Tag *tag = _tagFile->tag();
-		tag->setYear(year);
+		tag->setYear((uint)year);
 	}
 }
 
@@ -360,7 +367,7 @@ using namespace TagLib;
 - (void)setTrackNumber:(NSInteger)trackNumber
 {
 	MP4::ItemListMap &items = _tagFile->tag()->itemListMap();
-	items["trkn"] = MP4::Item(trackNumber, [self trackTotal]);
+	items["trkn"] = MP4::Item((int)trackNumber, (int)[self trackTotal]);
 }
 
 - (NSInteger)trackNumber
@@ -372,7 +379,7 @@ using namespace TagLib;
 - (void)setTrackTotal:(NSInteger)trackTotal
 {
 	MP4::ItemListMap &items = _tagFile->tag()->itemListMap();
-	items["trkn"] = MP4::Item([self trackNumber], trackTotal);
+	items["trkn"] = MP4::Item((int)[self trackNumber], (int)trackTotal);
 }
 
 - (NSInteger)trackTotal
@@ -384,7 +391,7 @@ using namespace TagLib;
 - (void)setDiscNumber:(NSInteger)discNumber
 {
 	MP4::ItemListMap &items = _tagFile->tag()->itemListMap();
-	items["disk"] = MP4::Item(discNumber, [self discTotal]);
+	items["disk"] = MP4::Item((int)discNumber, (int)[self discTotal]);
 }
 
 - (NSInteger)discNumber
@@ -396,7 +403,7 @@ using namespace TagLib;
 - (void)setDiscTotal:(NSInteger)discTotal
 {
 	MP4::ItemListMap &items = _tagFile->tag()->itemListMap();
-	items["disk"] = MP4::Item([self discNumber], discTotal);
+	items["disk"] = MP4::Item((int)[self discNumber], (int)discTotal);
 }
 
 - (NSInteger)discTotal

@@ -9,15 +9,22 @@
 #import "TLID3MetaData.h"
 #import "NSString+TStringAdditions.h"
 
-#import "TagLib.h"
-#import "tstring.h"
 #import "mpegfile.h"
+#import "taglib.h"
+#import "tstring.h"
 #import "id3v2tag.h"
 #import "textidentificationframe.h"
 #import "unsynchronizedlyricsframe.h"
 #import "attachedpictureframe.h"
 
 using namespace TagLib;
+
+@interface TLID3MetaData ()
+{
+    TagLib::MPEG::File *_tagFile;
+}
+
+@end
 
 @implementation TLID3MetaData
 
@@ -31,8 +38,6 @@ using namespace TagLib;
 - (void)dealloc
 {
 	delete _tagFile;
-	
-	[super dealloc];
 }
 
 #pragma mark -
@@ -73,8 +78,6 @@ using namespace TagLib;
 												   code:NSFileReadUnknownError 
 											   userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"Could not open the file %@ with TLID3MetaData. Sorry!", url] 
 																					forKey:NSLocalizedDescriptionKey]];
-			
-			[self release];
 			return nil;
 		}
 		
@@ -96,10 +99,14 @@ using namespace TagLib;
 {
 	if([self canUpdateFile])
 	{
-		[[NSProcessInfo processInfo] disableSuddenTermination];
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        return _tagFile->save();
+#else
+        [[NSProcessInfo processInfo] disableSuddenTermination];
 		bool result = _tagFile->save();
 		[[NSProcessInfo processInfo] enableSuddenTermination];
 		return result;
+#endif
 	}
 	return NO;
 }
@@ -282,7 +289,7 @@ using namespace TagLib;
 	return [self _stringForTag:"TENC"];
 }
 
-- (void)setArtwork:(NSImage *)artwork
+- (void)setArtwork:(ImageType *)artwork
 {
 	@synchronized(self)
 	{
@@ -318,7 +325,7 @@ using namespace TagLib;
 	}
 }
 
-- (NSImage *)artwork
+- (ImageType *)artwork
 {
 	@synchronized(self)
 	{
@@ -330,7 +337,7 @@ using namespace TagLib;
 			{
 				ByteVector frameData = frame->picture();
 				NSData *pictureData = [NSData dataWithBytes:frameData.data() length:frameData.size()];
-				return [[[NSImage alloc] initWithData:pictureData] autorelease];
+				return [[ImageType alloc] initWithData:pictureData];
 			}
 		}
 	}
@@ -387,7 +394,7 @@ using namespace TagLib;
 	@synchronized(self)
 	{
 		Tag *tag = _tagFile->tag();
-		tag->setYear(year);
+		tag->setYear((uint)year);
 	}
 }
 
@@ -405,11 +412,11 @@ using namespace TagLib;
 	NSInteger trackTotal = [self trackTotal];
 	if(trackTotal > 0)
 	{
-		[self _setString:[NSString stringWithFormat:@"%ld/%ld", trackTotal, trackNumber] forTag:"TRCK"];
+		[self _setString:[NSString stringWithFormat:@"%ld/%ld", (long)trackTotal, (long)trackNumber] forTag:"TRCK"];
 	}
 	else
 	{
-		[self _setString:[NSString stringWithFormat:@"%ld", trackNumber] forTag:"TRCK"];
+		[self _setString:[NSString stringWithFormat:@"%ld", (long)trackNumber] forTag:"TRCK"];
 	}
 }
 
@@ -426,7 +433,7 @@ using namespace TagLib;
 
 - (void)setTrackTotal:(NSInteger)trackTotal
 {
-	[self _setString:[NSString stringWithFormat:@"%ld/%ld", [self trackNumber], trackTotal] forTag:"TRCK"];
+	[self _setString:[NSString stringWithFormat:@"%ld/%ld", (long)[self trackNumber], (long)trackTotal] forTag:"TRCK"];
 }
 
 - (NSInteger)trackTotal
@@ -445,11 +452,11 @@ using namespace TagLib;
 	NSInteger discTotal = [self discTotal];
 	if(discTotal > 0)
 	{
-		[self _setString:[NSString stringWithFormat:@"%ld/%ld", discNumber, discTotal] forTag:"TPOS"];
+		[self _setString:[NSString stringWithFormat:@"%ld/%ld", (long)discNumber, (long)discTotal] forTag:"TPOS"];
 	}
 	else
 	{
-		[self _setString:[NSString stringWithFormat:@"%ld", discNumber] forTag:"TPOS"];
+		[self _setString:[NSString stringWithFormat:@"%ld", (long)discNumber] forTag:"TPOS"];
 	}
 }
 
@@ -466,7 +473,7 @@ using namespace TagLib;
 
 - (void)setDiscTotal:(NSInteger)discTotal
 {
-	[self _setString:[NSString stringWithFormat:@"%ld/%ld", [self discNumber], discTotal] forTag:"TPOS"];
+	[self _setString:[NSString stringWithFormat:@"%ld/%ld", (long)[self discNumber], (long)discTotal] forTag:"TPOS"];
 }
 
 - (NSInteger)discTotal
